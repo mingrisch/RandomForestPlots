@@ -1,0 +1,65 @@
+---
+title: "Visualizing random forests"
+output: html_notebook
+---
+
+# Purpose
+
+The purpose of this project is to visualize some (or all) trees from a random survival forest, preferably as an annotated dendrogram. Unfortuntately, the GUI from H. Ishwaran and Kogalur does not work, and I don't speak Java. I will use this as an opportunity to work on my R skills.
+
+My ultimate aim is to use the recently released ggraph package to produce ggplot-style visualizations of decision trees.
+
+# Roadmap
+
+As a worked example, I will use the randomForestSRC package to train a random survival forest on the lung data that comes with the package. 
+
+1. Train a RSF on the lung data
+2. Extract the forest (presumably a nested list)
+
+3. Study the handling of lists, with the help of the Advanced R book from Hadley W.
+4. Explore some of the trees from the RSF 1); with the notion that a decision tree is actually a directed acyclic graph.
+
+5. Explore some visualization options: Dendrogram, igraph, and ggraph. How can I handle (and convert) the various tree formats?
+  
+6. use ggraph to plot selected decision trees; with annoated nodes (splitting variable, threshold)
+
+7. Follow the other R book (something with package development) by HW, to cast the results of this project into a R package.
+
+# Resources
+
+* Advanced R: http://adv-r.had.co.nz/
+
+* R packages: http://r-pkgs.had.co.nz/
+
+* R for data science: http://r4ds.had.co.nz/
+
+* ggraph: https://github.com/thomasp85/ggraph
+
+
+# A random forest
+
+Here, we train a RSF on the veteran's administration lung cancer data, which we will use as a data source throughout this project. Our goal is not an optimized prediction, we are only interested in the tree structures. Hence, we use default settings of the package.
+
+```{r RSF}
+require(survival)
+require(randomForestSRC)
+
+data(veteran)
+
+rf.obj <- rfsrc(Surv(time, status) ~ ., veteran,
+                statistics =T)
+
+forest <- rf.obj$forest
+#stat.obj <- stat.split(rf.obj)
+rf.obj
+```
+
+## Observations
+
+* It appears that this random survival forest achieves a remarkable prediction error. Also, the _forest_ object appears to contain the forest structure in which we are interested..
+
+* In particular, the 'nativeArray' appears to contain tree IDs, nodeIDs, parameter IDs and so on.
+
+* leaf.count is a vector of length ntree which contains the number of terminal nodes in each tree.
+
+* node.stats contains split statistics which are supposed to be accessed via stat.split. Unfortunately, that does not seem to work. 
